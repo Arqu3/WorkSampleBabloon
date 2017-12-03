@@ -22,6 +22,10 @@ namespace ThirdPerson.CameraControll
         [Range (0.0f, 180.0f)]
         float m_ClampY = 80.0f;
 
+        [Header ("Raycast variables")]
+        [SerializeField]
+        LayerMask m_Mask = Physics.AllLayers;
+
         #endregion
 
         #region Private fields
@@ -32,6 +36,7 @@ namespace ThirdPerson.CameraControll
 
         //Position variables
         Transform m_PlayerTransform;
+        Vector3 m_DesiredPosition = Vector3.zero;
 
         #endregion
 
@@ -48,10 +53,14 @@ namespace ThirdPerson.CameraControll
             if ( m_AbsoluteX > 360.0f ) m_AbsoluteX -= 360.0f;
             else if ( m_AbsoluteX < -360.0f ) m_AbsoluteX += 360.0f;
 
-            m_AbsoluteY = Mathf.Clamp (m_AbsoluteY + Input.GetAxis ("Mouse Y") * -1 * m_Sensitivity.y * Time.deltaTime, -m_ClampY / 5.0f, m_ClampY);
+            m_AbsoluteY = Mathf.Clamp (m_AbsoluteY + Input.GetAxis ("Mouse Y") * -1 * m_Sensitivity.y * Time.deltaTime, -m_ClampY / 8f, m_ClampY);
 
             Quaternion rot = Quaternion.Euler (m_AbsoluteY, m_AbsoluteX, 0.0f);
-            transform.position = m_PlayerTransform.position - ( rot * m_Offset );
+            m_DesiredPosition = m_PlayerTransform.position - ( rot * m_Offset );
+            RaycastHit hit;
+            Vector3 dir = m_DesiredPosition - m_PlayerTransform.position;
+            if ( Physics.Raycast (m_PlayerTransform.position, dir, out hit, dir.magnitude, m_Mask, QueryTriggerInteraction.Ignore) ) transform.position = hit.point;
+            else transform.position = m_DesiredPosition;
             transform.LookAt (m_PlayerTransform.position + rot * new Vector3 (m_Offset.x, m_Offset.y, 0.0f));
         }
     }

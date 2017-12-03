@@ -1,5 +1,7 @@
 ﻿using UnityEngine;
 using ThirdPerson.Player;
+using UnityEngine.Events;
+using UnityEngine.SceneManagement;
 
 /// <summary>
 /// Toolbox singleton-class, use this to set and get any public variables needed,
@@ -10,18 +12,41 @@ public class Toolbox : Singleton<Toolbox>
     //Make sure constructor cannot be used, true singleton
     protected Toolbox(){}
 
+    //General game variables
+    public int m_EnemiesKilled = 0;
+    public float m_GameTime = 0.0f;
+
     //Gamestate variables
-    bool m_Paused = false;
+    bool m_GameOver = false;
+    public UnityEvent m_GameOverEvent;
+    public UnityEvent m_EnemyDiedEvent;
 
     //Player variables
     Transform m_PlayerTransform;
 
-    public bool Paused
+    void Update ()
+    {
+        m_GameTime += Time.deltaTime;
+
+        if ( m_GameOver && Input.GetKeyDown (KeyCode.Return) )
+        {
+            SceneManager.LoadScene (SceneManager.GetActiveScene ().buildIndex);
+            Time.timeScale = 1.0f;
+            m_GameOver = false;
+        }
+    }
+
+    public bool IsGameOver
     {
         get
         {
-           return m_Paused;
+           return m_GameOver;
         }
+    }
+
+    public int EnemiesKilled
+    {
+        get { return m_EnemiesKilled; }
     }
 
     public Transform PlayerTransform
@@ -32,18 +57,27 @@ public class Toolbox : Singleton<Toolbox>
         }
     }
 
-    //Toggle paused variable and set timescale depending on new value
-    public void TogglePaused()
+    void GameOver()
     {
-        m_Paused = !m_Paused;
-        Cursor.visible = m_Paused;
-        Cursor.lockState = m_Paused ? CursorLockMode.None : CursorLockMode.Locked;
-        Time.timeScale = m_Paused ? 0.0f : 1.0f;
+        m_GameOver = true;
+        Cursor.visible = m_GameOver;
+        Cursor.lockState = CursorLockMode.None;
+        Time.timeScale = 0.0f;
+    }
+
+    void IncrementKilledEnemies()
+    {
+        ++m_EnemiesKilled;
     }
 
     void Awake()
     {
         DontDestroyOnLoad(this);
+        m_GameOverEvent = new UnityEvent ();
+        m_GameOverEvent.AddListener (GameOver);
+
+        m_EnemyDiedEvent = new UnityEvent ();
+        m_EnemyDiedEvent.AddListener (IncrementKilledEnemies);
     }
 
     static public T REGISTERCOMPONENT<T>() where T : Component
