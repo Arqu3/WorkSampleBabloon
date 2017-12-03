@@ -87,3 +87,5 @@ Assets/Graphics/Shaders/Symbols/Symbol_Eye/Materials/Spike_1.mat
 Assets/Graphics/Shaders/Symbols/Symbol_Eye/Materials.meta
 Assets/Graphics/Shaders/EyeDeathSouls/SwirlRefractionEndScreen.mat.meta
 Assets/Graphics/Shaders/EyeDeathSouls.meta
+*.csproj
+*.sln
